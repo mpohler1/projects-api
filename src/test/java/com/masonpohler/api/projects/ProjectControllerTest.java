@@ -53,6 +53,27 @@ class ProjectControllerTest {
     }
 
     @Test
+    void create_project_adds_project_to_repository() {
+        Project dummyProject = createDummyProject();
+        List<Project> dummyProjectList = createDummyProjectList();
+
+        doAnswer((Answer<Project>) invocationOnMock -> {
+            dummyProjectList.add(dummyProject);
+            return dummyProject;
+        }).when(mockedRepository).save(dummyProject);
+
+        when(mockedRepository.findAll()).thenReturn(dummyProjectList);
+
+        List<Project> expectedProjectList = new LinkedList<>(dummyProjectList);
+        expectedProjectList.add(dummyProject);
+
+        controller.createProject(dummyProject);
+        List<Project> actualProjectList = mockedRepository.findAll();
+
+        assertEquals(expectedProjectList, actualProjectList);
+    }
+
+    @Test
     void delete_project_removes_project_from_repository() {
         List<Project> dummyProjectList = createDummyProjectList();
         Project dummyProject = dummyProjectList.get(0);
@@ -75,12 +96,12 @@ class ProjectControllerTest {
 
     private Project createDummyProject() {
         Project dummyProject = new Project();
-        dummyProject.setId(0);
-        dummyProject.setName("Meatbol Interpreter");
-        dummyProject.setDescription("Meatbol Interpreter.");
-        dummyProject.setDetailedDescription("An interpreter for the Meatbol language.");
-        dummyProject.setPreviewURL("https://example.com/meatbol/image.jpg");
-        dummyProject.setLiveURL("https://example.com/meatbol");
+        dummyProject.setId(3);
+        dummyProject.setName("Projects API");
+        dummyProject.setDescription("An API for Projects.");
+        dummyProject.setDetailedDescription("An API for storing information on all your Projects.");
+        dummyProject.setPreviewURL("https://example.com/projects-api/image.jpg");
+        dummyProject.setLiveURL("https://example.com/projects-api");
         return dummyProject;
     }
 
