@@ -2,14 +2,18 @@ package com.masonpohler.api.source;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.AdditionalAnswers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.mockito.stubbing.Answer;
 
 import java.util.LinkedList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.when;
 
 class SourceControllerTest {
@@ -34,13 +38,50 @@ class SourceControllerTest {
 
     @Test
     void get_all_sources_returns_list_of_all_sources() {
-        List<Source> expectedSourceList = createDummyListOfSources();
+        List<Source> expectedSourceList = createDummySourceList();
         when(mockedRepository.findAll()).thenReturn(expectedSourceList);
         List<Source> actualSourceList = controller.getAllSources();
         assertEquals(expectedSourceList, actualSourceList);
     }
 
-    private List<Source> createDummyListOfSources() {
+    @Test
+    void create_source_returns_created_source() {
+        Source expectedSource = createDummySource();
+        when(mockedRepository.save(any(Source.class))).thenAnswer(AdditionalAnswers.returnsFirstArg());
+        Source actualSource = controller.createSource(expectedSource);
+        assertEquals(expectedSource, actualSource);
+    }
+
+    @Test
+    void create_source_adds_source_to_repository() {
+        Source dummySource = createDummySource();
+        List<Source> dummySourceList = createDummySourceList();
+
+        doAnswer((Answer<Source>) invocationOnMock -> {
+            dummySourceList.add(dummySource);
+            return dummySource;
+        }).when(mockedRepository).save(dummySource);
+
+        when(mockedRepository.findAll()).thenReturn(dummySourceList);
+
+        List<Source> expectedSourceList = new LinkedList<>(dummySourceList);
+        expectedSourceList.add(dummySource);
+
+        controller.createSource(dummySource);
+        List<Source> actualSourceList = mockedRepository.findAll();
+
+        assertEquals(expectedSourceList, actualSourceList);
+    }
+
+    private Source createDummySource() {
+        Source dummySource = new Source();
+        dummySource.setId(4);
+        dummySource.setName("Dummy Source");
+        dummySource.setUrl("https://example.com/dummy-source");
+        return dummySource;
+    }
+
+    private List<Source> createDummySourceList() {
         Source loginAPI = new Source();
         loginAPI.setId(0);
         loginAPI.setName("Login API");
