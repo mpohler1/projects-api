@@ -6,12 +6,14 @@ import org.mockito.AdditionalAnswers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.mockito.stubbing.Answer;
 
 import java.util.LinkedList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.when;
 
 class ProjectControllerTest {
@@ -48,6 +50,27 @@ class ProjectControllerTest {
         when(mockedRepository.save(any(Project.class))).thenAnswer(AdditionalAnswers.returnsFirstArg());
         Project actualProject = controller.createProject(expectedProject);
         assertEquals(expectedProject, actualProject);
+    }
+
+    @Test
+    void delete_project_removes_project_from_repository() {
+        List<Project> dummyProjectList = createDummyProjectList();
+        Project dummyProject = dummyProjectList.get(0);
+
+        doAnswer((Answer<List<Project>>) invocationOnMock -> {
+            dummyProjectList.remove(dummyProject);
+            return dummyProjectList;
+        }).when(mockedRepository).delete(dummyProject);
+
+        when(mockedRepository.findAll()).thenReturn(dummyProjectList);
+
+        List<Project> expectedProjectList = new LinkedList<>(dummyProjectList);
+        expectedProjectList.remove(dummyProject);
+
+        controller.deleteProject(dummyProject);
+        List<Project> actualProjectList = mockedRepository.findAll();
+
+        assertEquals(expectedProjectList, actualProjectList);
     }
 
     private Project createDummyProject() {
