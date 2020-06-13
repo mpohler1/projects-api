@@ -6,7 +6,6 @@ import org.mockito.AdditionalAnswers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
 import java.util.LinkedList;
@@ -84,9 +83,10 @@ class ProjectControllerTest {
         List<Project> dummyProjectList = createDummyProjectList();
 
         doAnswer((Answer<Project>) invocationOnMock -> {
-            dummyProjectList.add(dummyProject);
-            return dummyProject;
-        }).when(mockedRepository).save(dummyProject);
+            Project project = invocationOnMock.getArgument(0);
+            dummyProjectList.add(project);
+            return project;
+        }).when(mockedRepository).save(any(Project.class));
 
         when(mockedRepository.findAll()).thenReturn(dummyProjectList);
 
@@ -105,9 +105,10 @@ class ProjectControllerTest {
         Project dummyProject = dummyProjectList.get(0);
 
         doAnswer((Answer<List<Project>>) invocationOnMock -> {
-            dummyProjectList.remove(dummyProject);
+            Project project = invocationOnMock.getArgument(0);
+            dummyProjectList.remove(project);
             return dummyProjectList;
-        }).when(mockedRepository).delete(dummyProject);
+        }).when(mockedRepository).delete(any(Project.class));
 
         when(mockedRepository.findAll()).thenReturn(dummyProjectList);
 
