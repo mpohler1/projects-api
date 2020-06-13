@@ -16,6 +16,12 @@ class SourceController {
         return repository.findAll();
     }
 
+    @GetMapping("/source/{id}")
+    Source getSourceById(long id) {
+        return repository.findById(id)
+                .orElseThrow(() -> new SourceNotFoundException(id));
+    }
+
     @PostMapping("/sources/create")
     Source createSource(@RequestBody Source source) {
         return repository.save(source);

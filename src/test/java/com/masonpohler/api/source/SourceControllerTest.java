@@ -10,8 +10,10 @@ import org.mockito.stubbing.Answer;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.when;
@@ -42,6 +44,34 @@ class SourceControllerTest {
         when(mockedRepository.findAll()).thenReturn(expectedSourceList);
         List<Source> actualSourceList = controller.getAllSources();
         assertEquals(expectedSourceList, actualSourceList);
+    }
+
+    @Test
+    void get_source_by_id_throws_source_not_found_exception_when_source_not_in_repostiory() {
+        when(mockedRepository.findById(any(Long.class)))
+                .thenAnswer((Answer<Optional<Source>>) invocationOnMock -> {
+                    long id = invocationOnMock.getArgument(0);
+                    Source source = findSourceInListById(new LinkedList<Source>(), id);
+                    return Optional.ofNullable(source);
+                });
+
+        assertThrows(SourceNotFoundException.class, () -> controller.getSourceById(0));
+    }
+
+    @Test
+    void get_source_by_id_returns_source_when_source_is_in_repository() {
+        List<Source> dummySourceList = createDummySourceList();
+
+        when(mockedRepository.findById(any(Long.class)))
+                .thenAnswer((Answer<Optional<Source>>) invocationOnMock -> {
+                    long id = invocationOnMock.getArgument(0);
+                    Source source = findSourceInListById(dummySourceList, id);
+                    return Optional.ofNullable(source);
+                });
+
+        Source expectedSource = dummySourceList.get(0);
+        Source actualSource = controller.getSourceById(expectedSource.getId());
+        assertEquals(expectedSource, actualSource);
     }
 
     @Test
@@ -132,5 +162,15 @@ class SourceControllerTest {
         dummySourceList.add(ecommerceApp);
 
         return dummySourceList;
+    }
+
+    private Source findSourceInListById(List<Source> sourceList, long id) {
+        for (Source source : sourceList) {
+            if (source.getId() == id) {
+                return source;
+            }
+        }
+
+        return null;
     }
 }

@@ -48,15 +48,19 @@ class ProjectControllerTest {
 
     @Test
     void get_project_by_id_throws_project_not_found_exception_when_project_not_in_repository() {
-        Project dummyProject = createDummyProject();
-        when(mockedRepository.findById(any(Long.class))).thenReturn(Optional.empty());
-        assertThrows(ProjectNotFoundException.class, () -> controller.getProjectById(dummyProject.getId()));
+        when(mockedRepository.findById(any(Long.class)))
+                .thenAnswer((Answer<Optional<Project>>) invocationOnMock -> {
+                    long id = invocationOnMock.getArgument(0);
+                    Project project = findProjectInListById(new LinkedList<Project>(), id);
+                    return Optional.ofNullable(project);
+                });
+
+        assertThrows(ProjectNotFoundException.class, () -> controller.getProjectById(0));
     }
 
     @Test
     void get_project_by_id_returns_project_when_project_is_in_repository() {
         List<Project> dummyProjectList = createDummyProjectList();
-        Project expectedProject = dummyProjectList.get(0);
 
         when(mockedRepository.findById(any(Long.class)))
                 .thenAnswer((Answer<Optional<Project>>) invocationOnMock -> {
@@ -65,6 +69,7 @@ class ProjectControllerTest {
                     return Optional.ofNullable(project);
                 });
 
+        Project expectedProject = dummyProjectList.get(0);
         Project actualProject = controller.getProjectById(expectedProject.getId());
         assertEquals(expectedProject, actualProject);
     }
