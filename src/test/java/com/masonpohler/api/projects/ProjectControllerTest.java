@@ -2,6 +2,7 @@ package com.masonpohler.api.projects;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.AdditionalAnswers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -10,6 +11,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 class ProjectControllerTest {
@@ -34,13 +36,32 @@ class ProjectControllerTest {
 
     @Test
     void get_all_projects_returns_all_projects() {
-        List<Project> expectedProjectList = createDummyProductList();
+        List<Project> expectedProjectList = createDummyProjectList();
         when(mockedRepository.findAll()).thenReturn(expectedProjectList);
         List<Project> actualProjectList = controller.getAllProjects();
         assertEquals(expectedProjectList, actualProjectList);
     }
 
-    private List<Project> createDummyProductList() {
+    @Test
+    void create_project_returns_created_project() {
+        Project expectedProject = createDummyProject();
+        when(mockedRepository.save(any(Project.class))).thenAnswer(AdditionalAnswers.returnsFirstArg());
+        Project actualProject = controller.createProject(expectedProject);
+        assertEquals(expectedProject, actualProject);
+    }
+
+    private Project createDummyProject() {
+        Project dummyProject = new Project();
+        dummyProject.setId(0);
+        dummyProject.setName("Meatbol Interpreter");
+        dummyProject.setDescription("Meatbol Interpreter.");
+        dummyProject.setDetailedDescription("An interpreter for the Meatbol language.");
+        dummyProject.setPreviewURL("https://example.com/meatbol/image.jpg");
+        dummyProject.setLiveURL("https://example.com/meatbol");
+        return dummyProject;
+    }
+
+    private List<Project> createDummyProjectList() {
         Project meatbol = new Project();
         meatbol.setId(0);
         meatbol.setName("Meatbol Interpreter");
