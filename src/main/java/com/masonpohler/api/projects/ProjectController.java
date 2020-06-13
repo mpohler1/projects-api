@@ -16,6 +16,12 @@ class ProjectController {
         return repository.findAll();
     }
 
+    @GetMapping("/project/{id}")
+    Project getProjectById(long id) {
+        return repository.findById(id)
+                .orElseThrow(() -> new ProjectNotFoundException(id));
+    }
+
     @PostMapping("/projects/create")
     Project createProject(@RequestBody Project project) {
         return repository.save(project);

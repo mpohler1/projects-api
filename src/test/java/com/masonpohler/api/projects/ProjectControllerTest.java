@@ -6,12 +6,15 @@ import org.mockito.AdditionalAnswers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.when;
@@ -42,6 +45,29 @@ class ProjectControllerTest {
         when(mockedRepository.findAll()).thenReturn(expectedProjectList);
         List<Project> actualProjectList = controller.getAllProjects();
         assertEquals(expectedProjectList, actualProjectList);
+    }
+
+    @Test
+    void get_project_by_id_throws_project_not_found_exception_when_project_not_in_repository() {
+        Project dummyProject = createDummyProject();
+        when(mockedRepository.findById(any(Long.class))).thenReturn(Optional.empty());
+        assertThrows(ProjectNotFoundException.class, () -> controller.getProjectById(dummyProject.getId()));
+    }
+
+    @Test
+    void get_project_by_id_returns_project_when_project_is_in_repository() {
+        List<Project> dummyProjectList = createDummyProjectList();
+        Project expectedProject = dummyProjectList.get(0);
+
+        when(mockedRepository.findById(any(Long.class)))
+                .thenAnswer((Answer<Optional<Project>>) invocationOnMock -> {
+                    long id = invocationOnMock.getArgument(0);
+                    Project project = findProjectInListById(dummyProjectList, id);
+                    return Optional.ofNullable(project);
+                });
+
+        Project actualProject = controller.getProjectById(expectedProject.getId());
+        assertEquals(expectedProject, actualProject);
     }
 
     @Test
@@ -136,5 +162,15 @@ class ProjectControllerTest {
         dummyProjectsList.add(portfolio);
 
         return dummyProjectsList;
+    }
+
+    private Project findProjectInListById(List<Project> projectList, long id) {
+        for (Project project : projectList) {
+            if (project.getId() == id) {
+                return project;
+            }
+        }
+
+        return null;
     }
 }
