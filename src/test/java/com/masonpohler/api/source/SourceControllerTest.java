@@ -58,9 +58,10 @@ class SourceControllerTest {
         List<Source> dummySourceList = createDummySourceList();
 
         doAnswer((Answer<Source>) invocationOnMock -> {
-            dummySourceList.add(dummySource);
-            return dummySource;
-        }).when(mockedRepository).save(dummySource);
+            Source source = invocationOnMock.getArgument(0);
+            dummySourceList.add(source);
+            return source;
+        }).when(mockedRepository).save(any(Source.class));
 
         when(mockedRepository.findAll()).thenReturn(dummySourceList);
 
@@ -79,9 +80,10 @@ class SourceControllerTest {
         Source dummySource = dummySourceList.get(0);
 
         doAnswer((Answer<List<Source>>) invocationOnMock -> {
-            dummySourceList.remove(dummySource);
+            Source source = invocationOnMock.getArgument(0);
+            dummySourceList.remove(source);
             return dummySourceList;
-        }).when(mockedRepository).delete(dummySource);
+        }).when(mockedRepository).delete(any(Source.class));
 
         when(mockedRepository.findAll()).thenReturn(dummySourceList);
 
