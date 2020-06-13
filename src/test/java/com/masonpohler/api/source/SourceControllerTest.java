@@ -73,6 +73,27 @@ class SourceControllerTest {
         assertEquals(expectedSourceList, actualSourceList);
     }
 
+    @Test
+    void delete_source_removes_source_from_repository() {
+        List<Source> dummySourceList = createDummySourceList();
+        Source dummySource = dummySourceList.get(0);
+
+        doAnswer((Answer<List<Source>>) invocationOnMock -> {
+            dummySourceList.remove(dummySource);
+            return dummySourceList;
+        }).when(mockedRepository).delete(dummySource);
+
+        when(mockedRepository.findAll()).thenReturn(dummySourceList);
+
+        List<Source> expectedSourceList = new LinkedList<>(dummySourceList);
+        expectedSourceList.remove(dummySource);
+
+        controller.deleteSource(dummySource);
+        List<Source> actualSourceList = mockedRepository.findAll();
+
+        assertEquals(expectedSourceList, actualSourceList);
+    }
+
     private Source createDummySource() {
         Source dummySource = new Source();
         dummySource.setId(4);
