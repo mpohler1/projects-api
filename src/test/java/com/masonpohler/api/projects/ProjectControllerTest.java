@@ -33,7 +33,7 @@ class ProjectControllerTest {
     void get_all_projects_returns_empty_list_when_there_are_no_projects() {
         when(mockedRepository.findAll()).thenReturn(new LinkedList<Project>());
         List<Project> actualProjectList = controller.getAllProjects();
-        assert(actualProjectList.size() == 0);
+        assert actualProjectList.size() == 0;
     }
 
     @Test
