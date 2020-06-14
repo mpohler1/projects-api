@@ -1,5 +1,6 @@
 package com.masonpohler.api.source;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.masonpohler.api.projects.Project;
 import lombok.Data;
 
@@ -17,6 +18,7 @@ public class Source {
     private String name;
     private String url;
 
-    @ManyToMany(mappedBy = "sources")
+    @ManyToMany(mappedBy = "sources", fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.DETACH, CascadeType.MERGE, CascadeType.REFRESH})
+    @JsonIgnoreProperties("sources")
     private List<Project> projects;
 }
