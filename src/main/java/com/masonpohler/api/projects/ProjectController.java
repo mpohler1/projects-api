@@ -28,12 +28,22 @@ class ProjectController {
         return repository.save(project);
     }
 
-    @PutMapping("/project/{id}/add-source")
+    @PutMapping("/project/{id}/sources/add")
     Project addSourceToProject(@RequestBody Source source, @PathVariable long id) {
         Project project = repository.findById(id)
                 .orElseThrow(() -> new ProjectNotFoundException(id));
         if (!sourceIsInList(source, project.getSources())) {
             project.getSources().add(source);
+        }
+        return repository.save(project);
+    }
+
+    @PutMapping("/project/{id}/sources/remove")
+    Project removeSourceFromProject(@RequestBody Source source, @PathVariable long id) {
+        Project project = repository.findById(id)
+                .orElseThrow(() -> new ProjectNotFoundException(id));
+        if (sourceIsInList(source, project.getSources())) {
+            project.getSources().remove(source);
         }
         return repository.save(project);
     }

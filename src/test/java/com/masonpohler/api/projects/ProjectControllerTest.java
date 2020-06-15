@@ -3,7 +3,6 @@ package com.masonpohler.api.projects;
 import com.masonpohler.api.source.Source;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.AdditionalAnswers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -31,9 +30,11 @@ class ProjectControllerTest {
         MockitoAnnotations.initMocks(this);
     }
 
+    // getAllProjects
+
     @Test
     void get_all_projects_returns_empty_list_when_there_are_no_projects() {
-        when(mockedRepository.findAll()).thenReturn(new LinkedList<Project>());
+        mockFindAll(new LinkedList<>());
         List<Project> actualProjectList = controller.getAllProjects();
         assert actualProjectList.size() == 0;
     }
@@ -41,74 +42,55 @@ class ProjectControllerTest {
     @Test
     void get_all_projects_returns_all_projects() {
         List<Project> expectedProjectList = createDummyProjectList();
-        when(mockedRepository.findAll()).thenReturn(expectedProjectList);
+        mockFindAll(expectedProjectList);
         List<Project> actualProjectList = controller.getAllProjects();
         assertEquals(expectedProjectList, actualProjectList);
     }
 
+    // getProjectById
+
     @Test
     void get_project_by_id_throws_project_not_found_exception_when_project_not_in_repository() {
-        when(mockedRepository.findById(any(Long.class)))
-                .thenAnswer((Answer<Optional<Project>>) invocationOnMock -> {
-                    long id = invocationOnMock.getArgument(0);
-                    Project project = findProjectInListById(new LinkedList<Project>(), id);
-                    return Optional.ofNullable(project);
-                });
-
+        mockFindById(new LinkedList<>());
         assertThrows(ProjectNotFoundException.class, () -> controller.getProjectById(0));
     }
 
     @Test
     void get_project_by_id_does_not_throw_exception_when_project_is_in_repository() {
         List<Project> dummyProjectList = createDummyProjectList();
+        mockFindById(dummyProjectList);
+
         Project project = dummyProjectList.get(0);
-
-        when(mockedRepository.findById(any(Long.class)))
-                .thenAnswer(invocationOnMock -> {
-                    long id = invocationOnMock.getArgument(0);
-                    Project foundProject = findProjectInListById(dummyProjectList, id);
-                    return Optional.ofNullable(foundProject);
-                });
-
         assertDoesNotThrow(() -> controller.getProjectById(project.getId()));
     }
 
     @Test
     void get_project_by_id_returns_project_when_project_is_in_repository() {
         List<Project> dummyProjectList = createDummyProjectList();
-
-        when(mockedRepository.findById(any(Long.class)))
-                .thenAnswer((Answer<Optional<Project>>) invocationOnMock -> {
-                    long id = invocationOnMock.getArgument(0);
-                    Project project = findProjectInListById(dummyProjectList, id);
-                    return Optional.ofNullable(project);
-                });
+        mockFindById(dummyProjectList);
 
         Project expectedProject = dummyProjectList.get(0);
         Project actualProject = controller.getProjectById(expectedProject.getId());
         assertEquals(expectedProject, actualProject);
     }
 
+    // createProject
+
     @Test
     void create_project_returns_created_project() {
+        mockSave(new LinkedList<>());
         Project expectedProject = createDummyProject();
-        when(mockedRepository.save(any(Project.class))).thenAnswer(AdditionalAnswers.returnsFirstArg());
         Project actualProject = controller.createProject(expectedProject);
         assertEquals(expectedProject, actualProject);
     }
 
     @Test
     void create_project_adds_project_to_repository() {
-        Project dummyProject = createDummyProject();
         List<Project> dummyProjectList = createDummyProjectList();
+        mockFindAll(dummyProjectList);
+        mockSave(dummyProjectList);
 
-        doAnswer((Answer<Project>) invocationOnMock -> {
-            Project project = invocationOnMock.getArgument(0);
-            dummyProjectList.add(project);
-            return project;
-        }).when(mockedRepository).save(any(Project.class));
-
-        when(mockedRepository.findAll()).thenReturn(dummyProjectList);
+        Project dummyProject = createDummyProject();
 
         List<Project> expectedProjectList = new LinkedList<>(dummyProjectList);
         expectedProjectList.add(dummyProject);
@@ -119,14 +101,11 @@ class ProjectControllerTest {
         assertEquals(expectedProjectList, actualProjectList);
     }
 
+    // addSourceToProject
+
     @Test
     void add_source_to_project_throws_project_not_found_exception_when_project_is_not_in_repository() {
-        when(mockedRepository.findById(any(Long.class)))
-                .thenAnswer((Answer<Optional<Project>>) invocationOnMock -> {
-                    long id = invocationOnMock.getArgument(0);
-                    Project project = findProjectInListById(new LinkedList<Project>(), id);
-                    return Optional.ofNullable(project);
-                });
+        mockFindById(new LinkedList<>());
 
         Project dummyProject = createDummyProject();
         Source dummySource = createDummySource();
@@ -137,31 +116,18 @@ class ProjectControllerTest {
     @Test
     void add_source_to_project_does_not_throw_exception_when_project_with_id_is_found() {
         List<Project> dummyProjectList = createDummyProjectList();
+        mockFindById(dummyProjectList);
+
         Project project = dummyProjectList.get(0);
         Source source = createDummySource();
-
-        when(mockedRepository.findById(any(Long.class)))
-                .thenAnswer(invocationOnMock -> {
-                    long id = invocationOnMock.getArgument(0);
-                    Project foundProject = findProjectInListById(dummyProjectList, id);
-                    return Optional.ofNullable(foundProject);
-                });
-
         assertDoesNotThrow(() -> controller.addSourceToProject(source, project.getId()));
     }
 
     @Test
     void add_source_to_project_that_already_has_source_returns_project() {
         List<Project> dummyProjectList = createDummyProjectList();
-
-        when(mockedRepository.findById(any(Long.class)))
-                .thenAnswer((Answer<Optional<Project>>) invocationOnMock -> {
-                    long id = invocationOnMock.getArgument(0);
-                    Project project = findProjectInListById(dummyProjectList, id);
-                    return Optional.ofNullable(project);
-                });
-
-        when(mockedRepository.save(any(Project.class))).thenAnswer(invocationOnMock -> invocationOnMock.getArgument(0));
+        mockFindById(dummyProjectList);
+        mockSave(dummyProjectList);
 
         Source dummySource = createDummySource();
         Project expectedProject = dummyProjectList.get(0);
@@ -173,17 +139,10 @@ class ProjectControllerTest {
     }
 
     @Test
-    void add_source_to_project_updates_source_in_repository() {
+    void add_source_to_project_adds_source_to_project() {
         List<Project> dummyProjectList = createDummyProjectList();
-
-        when(mockedRepository.findById(any(Long.class)))
-                .thenAnswer((Answer<Optional<Project>>) invocationOnMock -> {
-                    long id = invocationOnMock.getArgument(0);
-                    Project project = findProjectInListById(dummyProjectList, id);
-                    return Optional.ofNullable(project);
-                });
-
-        when(mockedRepository.save(any(Project.class))).thenAnswer(invocationOnMock -> invocationOnMock.getArgument(0));
+        mockFindById(dummyProjectList);
+        mockSave(dummyProjectList);
 
         Source expectedSource = createDummySource();
 
@@ -193,18 +152,68 @@ class ProjectControllerTest {
         assertEquals(expectedSource, actualSource);
     }
 
+    // removeSourceFromProject
+
+    @Test
+    void remove_source_from_project_throws_project_not_found_exception_when_project_not_in_repository() {
+        mockFindById(new LinkedList<>());
+
+        Project dummyProject = createDummyProject();
+        Source dummySource = createDummySource();
+        assertThrows(ProjectNotFoundException.class, () -> controller.removeSourceFromProject(dummySource, dummyProject.getId()));
+    }
+
+    @Test
+    void remove_source_from_project_does_not_throw_exception_when_project_is_in_repository() {
+        List<Project> dummyProjectList = createDummyProjectList();
+        mockFindById(dummyProjectList);
+
+        Project project = dummyProjectList.get(0);
+        Source source = createDummySource();
+        assertDoesNotThrow(() -> controller.removeSourceFromProject(source, project.getId()));
+    }
+
+    @Test
+    void remove_source_from_project_returns_project_when_source_was_not_in_project_source_list() {
+        List<Project> dummyProjectList = createDummyProjectList();
+        mockFindById(dummyProjectList);
+        mockSave(dummyProjectList);
+
+        List<Source> dummySourceList = createDummySourceList();
+        Project expectedProject = dummyProjectList.get(0);
+        expectedProject.setSources(dummySourceList);
+
+        Source dummySource = createDummySource();
+        Project actualProject = controller.removeSourceFromProject(dummySource, expectedProject.getId());
+
+        assertEquals(expectedProject, actualProject);
+    }
+
+    @Test
+    void remove_source_from_project_removes_source_from_project() {
+        List<Project> dummyProjectList = createDummyProjectList();
+        mockFindById(dummyProjectList);
+        mockSave(dummyProjectList);
+
+        List<Source> dummySourceList = createDummySourceList();
+        Project expectedProject = dummyProjectList.get(0);
+        expectedProject.setSources(dummySourceList);
+
+        Source dummySource = dummySourceList.get(0);
+        Project actualProject = controller.removeSourceFromProject(dummySource, expectedProject.getId());
+
+        assertEquals(expectedProject, actualProject);
+    }
+
+    // deleteProject
+
     @Test
     void delete_project_removes_project_from_repository() {
         List<Project> dummyProjectList = createDummyProjectList();
+        mockFindAll(dummyProjectList);
+        mockDelete(dummyProjectList);
+
         Project dummyProject = dummyProjectList.get(0);
-
-        doAnswer((Answer<List<Project>>) invocationOnMock -> {
-            Project project = invocationOnMock.getArgument(0);
-            dummyProjectList.remove(project);
-            return dummyProjectList;
-        }).when(mockedRepository).delete(any(Project.class));
-
-        when(mockedRepository.findAll()).thenReturn(dummyProjectList);
 
         List<Project> expectedProjectList = new LinkedList<>(dummyProjectList);
         expectedProjectList.remove(dummyProject);
@@ -213,6 +222,38 @@ class ProjectControllerTest {
         List<Project> actualProjectList = mockedRepository.findAll();
 
         assertEquals(expectedProjectList, actualProjectList);
+    }
+
+    // helper functions
+
+    private void mockFindAll(List<Project> projectList) {
+        when(mockedRepository.findAll()).thenReturn(projectList);
+    }
+
+    private void mockFindById(List<Project> projectList) {
+        when(mockedRepository.findById(any(Long.class)))
+                .thenAnswer(invocationOnMock -> {
+                    long id = invocationOnMock.getArgument(0);
+                    Project foundProject = findProjectInListById(projectList, id);
+                    return Optional.ofNullable(foundProject);
+                });
+    }
+
+    private void mockSave(List<Project> projectList) {
+        when(mockedRepository.save(any(Project.class)))
+                .thenAnswer((Answer<Project>) invocationOnMock -> {
+                    Project project = invocationOnMock.getArgument(0);
+                    projectList.add(project);
+                    return project;
+                });
+    }
+
+    private void mockDelete(List<Project> projectList) {
+        doAnswer((Answer<List<Project>>) invocationOnMock -> {
+            Project project = invocationOnMock.getArgument(0);
+            projectList.remove(project);
+            return projectList;
+        }).when(mockedRepository).delete(any(Project.class));
     }
 
     private Project createDummyProject() {
