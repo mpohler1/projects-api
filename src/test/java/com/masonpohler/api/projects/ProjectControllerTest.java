@@ -8,6 +8,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.stubbing.Answer;
 
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
@@ -144,12 +145,11 @@ class ProjectControllerTest {
         mockFindById(dummyProjectList);
         mockSave(dummyProjectList);
 
-        Source expectedSource = createDummySource();
+        Source dummySource = createDummySource();
 
-        Project project = controller.addSourceToProject(expectedSource, dummyProjectList.get(0).getId());
-        Source actualSource = project.getSources().get(0);
+        Project project = controller.addSourceToProject(dummySource, dummyProjectList.get(0).getId());
 
-        assertEquals(expectedSource, actualSource);
+        assert project.getSources().contains(dummySource);
     }
 
     // removeSourceFromProject
@@ -181,7 +181,7 @@ class ProjectControllerTest {
 
         List<Source> dummySourceList = createDummySourceList();
         Project expectedProject = dummyProjectList.get(0);
-        expectedProject.setSources(dummySourceList);
+        expectedProject.setSources(new HashSet<>(dummySourceList));
 
         Source dummySource = createDummySource();
         Project actualProject = controller.removeSourceFromProject(dummySource, expectedProject.getId());
@@ -197,7 +197,7 @@ class ProjectControllerTest {
 
         List<Source> dummySourceList = createDummySourceList();
         Project expectedProject = dummyProjectList.get(0);
-        expectedProject.setSources(dummySourceList);
+        expectedProject.setSources(new HashSet<>(dummySourceList));
 
         Source dummySource = dummySourceList.get(0);
         Project actualProject = controller.removeSourceFromProject(dummySource, expectedProject.getId());

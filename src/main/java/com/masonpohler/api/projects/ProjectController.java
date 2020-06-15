@@ -32,9 +32,7 @@ class ProjectController {
     Project addSourceToProject(@RequestBody Source source, @PathVariable long id) {
         Project project = repository.findById(id)
                 .orElseThrow(() -> new ProjectNotFoundException(id));
-        if (!sourceIsInList(source, project.getSources())) {
-            project.getSources().add(source);
-        }
+        project.getSources().add(source);
         return repository.save(project);
     }
 
@@ -42,18 +40,12 @@ class ProjectController {
     Project removeSourceFromProject(@RequestBody Source source, @PathVariable long id) {
         Project project = repository.findById(id)
                 .orElseThrow(() -> new ProjectNotFoundException(id));
-        if (sourceIsInList(source, project.getSources())) {
-            project.getSources().remove(source);
-        }
+        project.getSources().remove(source);
         return repository.save(project);
     }
 
     @DeleteMapping("/projects/delete")
     void deleteProject(@RequestBody Project project) {
         repository.delete(project);
-    }
-
-    private boolean sourceIsInList(Source source, List<Source> list) {
-        return list.stream().anyMatch(o -> o.getId() == source.getId());
     }
 }

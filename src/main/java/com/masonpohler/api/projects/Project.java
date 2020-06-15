@@ -5,12 +5,12 @@ import com.masonpohler.api.source.Source;
 import lombok.Data;
 
 import javax.persistence.*;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 @Data
 @Entity
-public class Project {
+class Project {
 
     @Id
     @GeneratedValue
@@ -34,5 +34,5 @@ public class Project {
             joinColumns = @JoinColumn(name = "project_id", referencedColumnName = "id"),
             inverseJoinColumns = @JoinColumn(name = "source_id", referencedColumnName = "id")
     )
-    private List<Source> sources = new LinkedList<>();
+    private Set<Source> sources = new HashSet<>();
 }
