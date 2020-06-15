@@ -5,6 +5,7 @@ import com.masonpohler.api.source.Source;
 import lombok.Data;
 
 import javax.persistence.*;
+import java.util.LinkedList;
 import java.util.List;
 
 @Data
@@ -27,7 +28,11 @@ public class Project {
     private String liveURL;
 
     @ManyToMany(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.DETACH, CascadeType.MERGE, CascadeType.REFRESH})
-    @JoinTable
     @JsonIgnoreProperties("projects")
-    private List<Source> sources;
+    @JoinTable(
+            name = "project_source",
+            joinColumns = @JoinColumn(name = "project_id", referencedColumnName = "id"),
+            inverseJoinColumns = @JoinColumn(name = "source_id", referencedColumnName = "id")
+    )
+    private List<Source> sources = new LinkedList<>();
 }

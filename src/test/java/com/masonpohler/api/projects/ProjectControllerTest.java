@@ -1,5 +1,6 @@
 package com.masonpohler.api.projects;
 
+import com.masonpohler.api.source.Source;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.AdditionalAnswers;
@@ -12,8 +13,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.when;
@@ -56,6 +56,21 @@ class ProjectControllerTest {
                 });
 
         assertThrows(ProjectNotFoundException.class, () -> controller.getProjectById(0));
+    }
+
+    @Test
+    void get_project_by_id_does_not_throw_exception_when_project_is_in_repository() {
+        List<Project> dummyProjectList = createDummyProjectList();
+        Project project = dummyProjectList.get(0);
+
+        when(mockedRepository.findById(any(Long.class)))
+                .thenAnswer(invocationOnMock -> {
+                    long id = invocationOnMock.getArgument(0);
+                    Project foundProject = findProjectInListById(dummyProjectList, id);
+                    return Optional.ofNullable(foundProject);
+                });
+
+        assertDoesNotThrow(() -> controller.getProjectById(project.getId()));
     }
 
     @Test
@@ -102,6 +117,80 @@ class ProjectControllerTest {
         List<Project> actualProjectList = mockedRepository.findAll();
 
         assertEquals(expectedProjectList, actualProjectList);
+    }
+
+    @Test
+    void add_source_to_project_throws_project_not_found_exception_when_project_is_not_in_repository() {
+        when(mockedRepository.findById(any(Long.class)))
+                .thenAnswer((Answer<Optional<Project>>) invocationOnMock -> {
+                    long id = invocationOnMock.getArgument(0);
+                    Project project = findProjectInListById(new LinkedList<Project>(), id);
+                    return Optional.ofNullable(project);
+                });
+
+        Project dummyProject = createDummyProject();
+        Source dummySource = createDummySource();
+
+        assertThrows(ProjectNotFoundException.class, () -> controller.addSourceToProject(dummySource, dummyProject.getId()));
+    }
+
+    @Test
+    void add_source_to_project_does_not_throw_exception_when_project_with_id_is_found() {
+        List<Project> dummyProjectList = createDummyProjectList();
+        Project project = dummyProjectList.get(0);
+        Source source = createDummySource();
+
+        when(mockedRepository.findById(any(Long.class)))
+                .thenAnswer(invocationOnMock -> {
+                    long id = invocationOnMock.getArgument(0);
+                    Project foundProject = findProjectInListById(dummyProjectList, id);
+                    return Optional.ofNullable(foundProject);
+                });
+
+        assertDoesNotThrow(() -> controller.addSourceToProject(source, project.getId()));
+    }
+
+    @Test
+    void add_source_to_project_that_already_has_source_returns_project() {
+        List<Project> dummyProjectList = createDummyProjectList();
+
+        when(mockedRepository.findById(any(Long.class)))
+                .thenAnswer((Answer<Optional<Project>>) invocationOnMock -> {
+                    long id = invocationOnMock.getArgument(0);
+                    Project project = findProjectInListById(dummyProjectList, id);
+                    return Optional.ofNullable(project);
+                });
+
+        when(mockedRepository.save(any(Project.class))).thenAnswer(invocationOnMock -> invocationOnMock.getArgument(0));
+
+        Source dummySource = createDummySource();
+        Project expectedProject = dummyProjectList.get(0);
+        expectedProject.getSources().add(dummySource);
+
+        Project actualProject = controller.addSourceToProject(dummySource, expectedProject.getId());
+
+        assertEquals(expectedProject, actualProject);
+    }
+
+    @Test
+    void add_source_to_project_updates_source_in_repository() {
+        List<Project> dummyProjectList = createDummyProjectList();
+
+        when(mockedRepository.findById(any(Long.class)))
+                .thenAnswer((Answer<Optional<Project>>) invocationOnMock -> {
+                    long id = invocationOnMock.getArgument(0);
+                    Project project = findProjectInListById(dummyProjectList, id);
+                    return Optional.ofNullable(project);
+                });
+
+        when(mockedRepository.save(any(Project.class))).thenAnswer(invocationOnMock -> invocationOnMock.getArgument(0));
+
+        Source expectedSource = createDummySource();
+
+        Project project = controller.addSourceToProject(expectedSource, dummyProjectList.get(0).getId());
+        Source actualSource = project.getSources().get(0);
+
+        assertEquals(expectedSource, actualSource);
     }
 
     @Test
@@ -168,6 +257,44 @@ class ProjectControllerTest {
         dummyProjectsList.add(portfolio);
 
         return dummyProjectsList;
+    }
+
+    private Source createDummySource() {
+        Source dummySource = new Source();
+        dummySource.setId(4);
+        dummySource.setName("Dummy Source");
+        dummySource.setUrl("https://example.com/dummy-source");
+        return dummySource;
+    }
+
+    private List<Source> createDummySourceList() {
+        Source loginAPI = new Source();
+        loginAPI.setId(0);
+        loginAPI.setName("Login API");
+        loginAPI.setUrl("https://example.com/login-api");
+
+        Source productAPI = new Source();
+        productAPI.setId(1);
+        productAPI.setName("Product API");
+        productAPI.setUrl("https://example.com/product-api");
+
+        Source locationAPI = new Source();
+        locationAPI.setId(2);
+        locationAPI.setName("Location API");
+        locationAPI.setUrl("https://example.com/location-api");
+
+        Source ecommerceApp = new Source();
+        ecommerceApp.setId(3);
+        ecommerceApp.setName("Ecommerce App");
+        ecommerceApp.setUrl("https://example.com/ecommerce-app");
+
+        List<Source> dummySourceList = new LinkedList<>();
+        dummySourceList.add(loginAPI);
+        dummySourceList.add(productAPI);
+        dummySourceList.add(locationAPI);
+        dummySourceList.add(ecommerceApp);
+
+        return dummySourceList;
     }
 
     private Project findProjectInListById(List<Project> projectList, long id) {

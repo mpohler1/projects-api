@@ -5,6 +5,7 @@ import com.masonpohler.api.projects.Project;
 import lombok.Data;
 
 import javax.persistence.*;
+import java.util.LinkedList;
 import java.util.List;
 
 @Data
@@ -20,5 +21,5 @@ public class Source {
 
     @ManyToMany(mappedBy = "sources", fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.DETACH, CascadeType.MERGE, CascadeType.REFRESH})
     @JsonIgnoreProperties("sources")
-    private List<Project> projects;
+    private List<Project> projects = new LinkedList<>();
 }

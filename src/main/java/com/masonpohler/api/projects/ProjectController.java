@@ -1,5 +1,6 @@
 package com.masonpohler.api.projects;
 
+import com.masonpohler.api.source.Source;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,7 +18,7 @@ class ProjectController {
     }
 
     @GetMapping("/project/{id}")
-    Project getProjectById(long id) {
+    Project getProjectById(@PathVariable long id) {
         return repository.findById(id)
                 .orElseThrow(() -> new ProjectNotFoundException(id));
     }
@@ -27,8 +28,22 @@ class ProjectController {
         return repository.save(project);
     }
 
+    @PutMapping("/project/{id}/add-source")
+    Project addSourceToProject(@RequestBody Source source, @PathVariable long id) {
+        Project project = repository.findById(id)
+                .orElseThrow(() -> new ProjectNotFoundException(id));
+        if (!sourceIsInList(source, project.getSources())) {
+            project.getSources().add(source);
+        }
+        return repository.save(project);
+    }
+
     @DeleteMapping("/projects/delete")
     void deleteProject(@RequestBody Project project) {
         repository.delete(project);
+    }
+
+    private boolean sourceIsInList(Source source, List<Source> list) {
+        return list.stream().anyMatch(o -> o.getId() == source.getId());
     }
 }
