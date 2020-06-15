@@ -31,9 +31,11 @@ class SourceControllerTest {
         MockitoAnnotations.initMocks(this);
     }
 
+    // getAllSources
+
     @Test
     void get_all_sources_returns_an_empty_list_when_no_sources_are_in_repository() {
-        when(mockedRepository.findAll()).thenReturn(new LinkedList<Source>());
+        mockFindAll(new LinkedList<>());
         List<Source> actualSourceList = controller.getAllSources();
         assert actualSourceList.size() == 0;
     }
@@ -41,60 +43,49 @@ class SourceControllerTest {
     @Test
     void get_all_sources_returns_list_of_all_sources() {
         List<Source> expectedSourceList = createDummySourceList();
-        when(mockedRepository.findAll()).thenReturn(expectedSourceList);
+        mockFindAll(expectedSourceList);
+
         List<Source> actualSourceList = controller.getAllSources();
         assertEquals(expectedSourceList, actualSourceList);
     }
 
+    // getSourceById
+
     @Test
     void get_source_by_id_throws_source_not_found_exception_when_source_not_in_repostiory() {
-        when(mockedRepository.findById(any(Long.class)))
-                .thenAnswer((Answer<Optional<Source>>) invocationOnMock -> {
-                    long id = invocationOnMock.getArgument(0);
-                    Source source = findSourceInListById(new LinkedList<Source>(), id);
-                    return Optional.ofNullable(source);
-                });
-
+        mockFindById(new LinkedList<>());
         assertThrows(SourceNotFoundException.class, () -> controller.getSourceById(0));
     }
 
     @Test
     void get_source_by_id_returns_source_when_source_is_in_repository() {
         List<Source> dummySourceList = createDummySourceList();
-
-        when(mockedRepository.findById(any(Long.class)))
-                .thenAnswer((Answer<Optional<Source>>) invocationOnMock -> {
-                    long id = invocationOnMock.getArgument(0);
-                    Source source = findSourceInListById(dummySourceList, id);
-                    return Optional.ofNullable(source);
-                });
+        mockFindById(dummySourceList);
 
         Source expectedSource = dummySourceList.get(0);
         Source actualSource = controller.getSourceById(expectedSource.getId());
         assertEquals(expectedSource, actualSource);
     }
 
+    // createSource
+
     @Test
     void create_source_returns_created_source() {
+        List<Source> dummySourceList = createDummySourceList();
+        mockSave(dummySourceList);
+
         Source expectedSource = createDummySource();
-        when(mockedRepository.save(any(Source.class))).thenAnswer(AdditionalAnswers.returnsFirstArg());
         Source actualSource = controller.createSource(expectedSource);
         assertEquals(expectedSource, actualSource);
     }
 
     @Test
     void create_source_adds_source_to_repository() {
-        Source dummySource = createDummySource();
         List<Source> dummySourceList = createDummySourceList();
+        mockFindAll(dummySourceList);
+        mockSave(dummySourceList);
 
-        doAnswer((Answer<Source>) invocationOnMock -> {
-            Source source = invocationOnMock.getArgument(0);
-            dummySourceList.add(source);
-            return source;
-        }).when(mockedRepository).save(any(Source.class));
-
-        when(mockedRepository.findAll()).thenReturn(dummySourceList);
-
+        Source dummySource = createDummySource();
         List<Source> expectedSourceList = new LinkedList<>(dummySourceList);
         expectedSourceList.add(dummySource);
 
@@ -104,19 +95,15 @@ class SourceControllerTest {
         assertEquals(expectedSourceList, actualSourceList);
     }
 
+    // deleteSource
+
     @Test
     void delete_source_removes_source_from_repository() {
         List<Source> dummySourceList = createDummySourceList();
+        mockFindAll(dummySourceList);
+        mockDelete(dummySourceList);
+
         Source dummySource = dummySourceList.get(0);
-
-        doAnswer((Answer<List<Source>>) invocationOnMock -> {
-            Source source = invocationOnMock.getArgument(0);
-            dummySourceList.remove(source);
-            return dummySourceList;
-        }).when(mockedRepository).delete(any(Source.class));
-
-        when(mockedRepository.findAll()).thenReturn(dummySourceList);
-
         List<Source> expectedSourceList = new LinkedList<>(dummySourceList);
         expectedSourceList.remove(dummySource);
 
@@ -124,6 +111,38 @@ class SourceControllerTest {
         List<Source> actualSourceList = mockedRepository.findAll();
 
         assertEquals(expectedSourceList, actualSourceList);
+    }
+
+    // helper functions
+
+    void mockFindAll(List<Source> sourceList) {
+        when(mockedRepository.findAll()).thenReturn(sourceList);
+    }
+
+    void mockFindById(List<Source> sourceList) {
+        when(mockedRepository.findById(any(Long.class)))
+                .thenAnswer((Answer<Optional<Source>>) invocationOnMock -> {
+                    long id = invocationOnMock.getArgument(0);
+                    Source source = findSourceInListById(sourceList, id);
+                    return Optional.ofNullable(source);
+                });
+    }
+
+    void mockSave(List<Source> sourceList) {
+        when(mockedRepository.save(any(Source.class)))
+                .thenAnswer((Answer<Source>) invocationOnMock -> {
+                    Source source = invocationOnMock.getArgument(0);
+                    sourceList.add(source);
+                    return source;
+                });
+    }
+
+    void mockDelete(List<Source> sourceList) {
+        doAnswer((Answer<List<Source>>) invocationOnMock -> {
+            Source source = invocationOnMock.getArgument(0);
+            sourceList.remove(source);
+            return sourceList;
+        }).when(mockedRepository).delete(any(Source.class));
     }
 
     private Source createDummySource() {
