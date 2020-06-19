@@ -16,14 +16,13 @@ import java.util.List;
 public class JWTAuthorizationFilter extends OncePerRequestFilter {
 
     private static final String AUTHORIZATION_HEADER = "Authorization";
-    private static final String PREFIX = "token ";
-    private static final String API_SECRET = System.getenv("API_SECRET");
 
     @Override
     protected void doFilterInternal(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, FilterChain filterChain) throws ServletException, IOException {
         try {
-            if (requestContainsToken(httpServletRequest, httpServletResponse)) {
-                Claims claims = validateToken(httpServletRequest);
+            String token = httpServletRequest.getHeader(AUTHORIZATION_HEADER);
+            if (token != null) {
+                Claims claims = JWTHandler.validateToken(token);
                 if (claims.get("authorities") != null) {
                     setUpSpringAuthentication(claims);
                 } else {
@@ -36,16 +35,6 @@ public class JWTAuthorizationFilter extends OncePerRequestFilter {
             httpServletResponse.setStatus(HttpServletResponse.SC_FORBIDDEN);
             httpServletResponse.sendError(HttpServletResponse.SC_FORBIDDEN, e.getMessage());
         }
-    }
-
-    private boolean requestContainsToken(HttpServletRequest request, HttpServletResponse response) {
-        String authorizationHeader = request.getHeader(AUTHORIZATION_HEADER);
-        return authorizationHeader != null && authorizationHeader.startsWith(PREFIX);
-    }
-
-    private Claims validateToken(HttpServletRequest request) {
-        String token = request.getHeader(AUTHORIZATION_HEADER).replace(PREFIX, "");
-        return Jwts.parser().setSigningKey(API_SECRET.getBytes()).parseClaimsJws(token).getBody();
     }
 
     private void setUpSpringAuthentication(Claims claims) {
