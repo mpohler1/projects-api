@@ -17,14 +17,14 @@ class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     private CORSFilter corsFilter;
 
     @Autowired
-    private JWTAuthorizationFilter jwtAuthorizationFilter;
+    private TokenAuthorizationFilter tokenAuthorizationFilter;
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http
                 .csrf().disable()
                 .addFilterBefore(corsFilter, SessionManagementFilter.class)
-                .addFilterAfter(jwtAuthorizationFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterAfter(tokenAuthorizationFilter, UsernamePasswordAuthenticationFilter.class)
                 .authorizeRequests()
                     .antMatchers("/login").permitAll()
                     .antMatchers(HttpMethod.GET, "/**").permitAll()

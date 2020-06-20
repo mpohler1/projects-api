@@ -1,6 +1,6 @@
 package com.masonpohler.api.security;
 
-import com.masonpohler.api.environment.Environment;
+import com.masonpohler.api.environment.EnvironmentService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -20,10 +20,10 @@ class AuthenticationControllerTest {
     private static final String ADMIN_PASSWORD = "root";
 
     @Mock
-    Environment mockedEnvironment;
+    EnvironmentService mockedEnvironmentService;
 
     @Mock
-    JWTHandler mockedTokenHandler;
+    TokenService mockedTokenService;
 
     @InjectMocks
     AuthenticationController controller;
@@ -31,20 +31,20 @@ class AuthenticationControllerTest {
     @BeforeEach
     void set_up() {
         MockitoAnnotations.initMocks(this);
-        when(mockedEnvironment.getEnv(ADMIN_USERNAME_ENVIRONMENT_VARIABLE_NAME)).thenReturn(ADMIN_USERNAME);
-        when(mockedEnvironment.getEnv(ADMIN_PASSWORD_ENVIRONMENT_VARIABLE_NAME)).thenReturn(ADMIN_PASSWORD);
+        when(mockedEnvironmentService.getEnv(ADMIN_USERNAME_ENVIRONMENT_VARIABLE_NAME)).thenReturn(ADMIN_USERNAME);
+        when(mockedEnvironmentService.getEnv(ADMIN_PASSWORD_ENVIRONMENT_VARIABLE_NAME)).thenReturn(ADMIN_PASSWORD);
     }
 
     @Test
     void login_throws_missing_environment_variable_exception_when_admin_username_is_not_set() {
-        when(mockedEnvironment.getEnv(ADMIN_USERNAME_ENVIRONMENT_VARIABLE_NAME)).thenThrow(MissingEnvironmentVariableException.class);
+        when(mockedEnvironmentService.getEnv(ADMIN_USERNAME_ENVIRONMENT_VARIABLE_NAME)).thenThrow(MissingEnvironmentVariableException.class);
         Credentials goodCredentials = makeGoodCredentials();
         assertThrows(MissingEnvironmentVariableException.class, () -> controller.login(goodCredentials));
     }
 
     @Test
     void login_throws_missing_environment_variable_exception_when_admin_password_is_not_set() {
-        when(mockedEnvironment.getEnv(ADMIN_PASSWORD_ENVIRONMENT_VARIABLE_NAME)).thenThrow(MissingEnvironmentVariableException.class);
+        when(mockedEnvironmentService.getEnv(ADMIN_PASSWORD_ENVIRONMENT_VARIABLE_NAME)).thenThrow(MissingEnvironmentVariableException.class);
         Credentials goodCredentials = makeGoodCredentials();
         assertThrows(MissingEnvironmentVariableException.class, () -> controller.login(goodCredentials));
     }
@@ -65,7 +65,7 @@ class AuthenticationControllerTest {
     void login_returns_a_token_created_by_token_handler_when_given_good_credentials() {
         String expectedToken = "xxxxx.yyyyy.zzzzz";
 
-        when(mockedTokenHandler.createToken(any(String.class), any(String.class)))
+        when(mockedTokenService.createToken(any(String.class), any(String.class)))
                 .thenReturn(expectedToken);
 
         Credentials goodCredentials = makeGoodCredentials();

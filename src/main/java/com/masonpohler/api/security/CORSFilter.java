@@ -1,6 +1,6 @@
 package com.masonpohler.api.security;
 
-import com.masonpohler.api.environment.Environment;
+import com.masonpohler.api.environment.EnvironmentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -14,14 +14,14 @@ public class CORSFilter implements Filter {
     private static final String APPLICATION_URL_VARIABLE_NAME = "APPLICATION_URL";
 
     @Autowired
-    private Environment environment;
+    private EnvironmentService environmentService;
 
     @Override
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
         HttpServletRequest request = (HttpServletRequest) servletRequest;
         HttpServletResponse response = (HttpServletResponse) servletResponse;
 
-        String applicationURL = environment.getEnv(APPLICATION_URL_VARIABLE_NAME);
+        String applicationURL = environmentService.getEnv(APPLICATION_URL_VARIABLE_NAME);
 
         response.setHeader("Access-Control-Allow-Origin", applicationURL);
         response.setHeader("Access-Control-Allow-Methods", "GET,POST,DELETE,PUT,OPTIONS");
