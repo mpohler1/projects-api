@@ -7,12 +7,15 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.security.access.AccessDeniedException;
+import org.yaml.snakeyaml.error.MissingEnvironmentVariableException;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 class AuthenticationControllerTest {
+    private static final String ADMIN_USERNAME_ENVIRONMENT_VARIABLE_NAME = "ADMIN_USERNAME";
+    private static final String ADMIN_PASSWORD_ENVIRONMENT_VARIABLE_NAME = "ADMIN_PASSWORD";
     private static final String ADMIN_USERNAME = "root";
     private static final String ADMIN_PASSWORD = "root";
 
@@ -28,8 +31,22 @@ class AuthenticationControllerTest {
     @BeforeEach
     void set_up() {
         MockitoAnnotations.initMocks(this);
-        when(mockedEnvironment.getEnv("ADMIN_USERNAME")).thenReturn(ADMIN_USERNAME);
-        when(mockedEnvironment.getEnv("ADMIN_PASSWORD")).thenReturn(ADMIN_PASSWORD);
+        when(mockedEnvironment.getEnv(ADMIN_USERNAME_ENVIRONMENT_VARIABLE_NAME)).thenReturn(ADMIN_USERNAME);
+        when(mockedEnvironment.getEnv(ADMIN_PASSWORD_ENVIRONMENT_VARIABLE_NAME)).thenReturn(ADMIN_PASSWORD);
+    }
+
+    @Test
+    void login_throws_missing_environment_variable_exception_when_admin_username_is_not_set() {
+        when(mockedEnvironment.getEnv(ADMIN_USERNAME_ENVIRONMENT_VARIABLE_NAME)).thenThrow(MissingEnvironmentVariableException.class);
+        Credentials goodCredentials = makeGoodCredentials();
+        assertThrows(MissingEnvironmentVariableException.class, () -> controller.login(goodCredentials));
+    }
+
+    @Test
+    void login_throws_missing_environment_variable_exception_when_admin_password_is_not_set() {
+        when(mockedEnvironment.getEnv(ADMIN_PASSWORD_ENVIRONMENT_VARIABLE_NAME)).thenThrow(MissingEnvironmentVariableException.class);
+        Credentials goodCredentials = makeGoodCredentials();
+        assertThrows(MissingEnvironmentVariableException.class, () -> controller.login(goodCredentials));
     }
 
     @Test
@@ -39,7 +56,7 @@ class AuthenticationControllerTest {
     }
 
     @Test
-    void login_does_not_throw_access_denied_exception_when_username_and_password_are_correct() {
+    void login_does_not_throw_exception_when_username_and_password_are_correct_and_environment_variables_are_set() {
         Credentials goodCredentials = makeGoodCredentials();
         assertDoesNotThrow(() -> controller.login(goodCredentials));
     }
