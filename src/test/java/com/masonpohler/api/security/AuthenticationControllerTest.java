@@ -33,19 +33,19 @@ class AuthenticationControllerTest {
     }
 
     @Test
-    void create_token_throws_access_denied_exception_when_username_and_password_incorrect() {
+    void login_throws_access_denied_exception_when_username_and_password_incorrect() {
         Credentials badCredentials = makeBadCredentials();
         assertThrows(AccessDeniedException.class, () -> controller.login(badCredentials));
     }
 
     @Test
-    void create_token_does_not_throw_access_denied_exception_when_username_and_password_are_correct() {
+    void login_does_not_throw_access_denied_exception_when_username_and_password_are_correct() {
         Credentials goodCredentials = makeGoodCredentials();
         assertDoesNotThrow(() -> controller.login(goodCredentials));
     }
 
     @Test
-    void create_token_returns_a_token_created_by_token_handler_when_given_good_credentials() {
+    void login_returns_a_token_created_by_token_handler_when_given_good_credentials() {
         String expectedToken = "xxxxx.yyyyy.zzzzz";
 
         when(mockedTokenHandler.createToken(any(String.class), any(String.class)))
