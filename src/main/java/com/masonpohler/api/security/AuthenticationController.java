@@ -9,8 +9,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 class AuthenticationController {
-    private static final String ADMIN_USERNAME_VARIABLE_NAME = "ADMIN_USERNAME";
-    private static final String ADMIN_PASSWORD_VARIABLE_NAME = "ADMIN_PASSWORD";
+    private static final String ADMIN_USERNAME_ENVIRONMENT_VARIABLE_NAME = "ADMIN_USERNAME";
+    private static final String ADMIN_PASSWORD_ENVIRONMENT_VARIABLE_NAME = "ADMIN_PASSWORD";
 
     @Autowired
     private EnvironmentService environmentService;
@@ -23,8 +23,8 @@ class AuthenticationController {
         String username = credentials.getUsername();
         String password = credentials.getPassword();
 
-        String adminUsername = environmentService.getEnv(ADMIN_USERNAME_VARIABLE_NAME);
-        String adminPassword = environmentService.getEnv(ADMIN_PASSWORD_VARIABLE_NAME);
+        String adminUsername = environmentService.getEnv(ADMIN_USERNAME_ENVIRONMENT_VARIABLE_NAME);
+        String adminPassword = environmentService.getEnv(ADMIN_PASSWORD_ENVIRONMENT_VARIABLE_NAME);
 
         if (username.equals(adminUsername) && password.equals(adminPassword)) {
             return tokenService.createToken(username, Authorities.ADMIN.toString());
