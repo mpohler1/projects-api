@@ -1,6 +1,6 @@
 package com.masonpohler.api.security;
 
-import org.springframework.context.annotation.Bean;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -13,22 +13,18 @@ import org.springframework.security.web.session.SessionManagementFilter;
 @EnableWebSecurity
 class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
-    @Bean
-    CORSFilter corsFilter() {
-        return new CORSFilter();
-    }
+    @Autowired
+    private CORSFilter corsFilter;
 
-    @Bean
-    JWTAuthorizationFilter jwtAuthorizationFilter() {
-        return new JWTAuthorizationFilter();
-    }
+    @Autowired
+    private JWTAuthorizationFilter jwtAuthorizationFilter;
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http
                 .csrf().disable()
-                .addFilterBefore(corsFilter(), SessionManagementFilter.class)
-                .addFilterAfter(jwtAuthorizationFilter(), UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(corsFilter, SessionManagementFilter.class)
+                .addFilterAfter(jwtAuthorizationFilter, UsernamePasswordAuthenticationFilter.class)
                 .authorizeRequests()
                     .antMatchers("/login").permitAll()
                     .antMatchers(HttpMethod.GET, "/**").permitAll()

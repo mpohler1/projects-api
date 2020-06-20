@@ -2,12 +2,14 @@ package com.masonpohler.api.security;
 
 import com.masonpohler.api.environment.Environment;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
+@Component
 public class CORSFilter implements Filter {
     private static final String APPLICATION_URL_VARIABLE_NAME = "APPLICATION_URL";
 
