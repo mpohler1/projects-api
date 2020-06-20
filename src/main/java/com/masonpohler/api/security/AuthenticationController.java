@@ -1,22 +1,33 @@
 package com.masonpohler.api.security;
 
+import com.masonpohler.api.environment.Environment;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-public class AuthenticationController {
-    private static String ADMIN_USERNAME = System.getenv("ADMIN_USERNAME");
-    private static String ADMIN_PASSWORD = System.getenv("ADMIN_PASSWORD");
+class AuthenticationController {
+    private static final String ADMIN_USERNAME_VARIABLE_NAME = "ADMIN_USERNAME";
+    private static final String ADMIN_PASSWORD_VARIABLE_NAME = "ADMIN_PASSWORD";
+
+    @Autowired
+    private Environment environment;
+
+    @Autowired
+    private JWTHandler tokenHandler;
     
     @PostMapping("/login")
     String login(@RequestBody Credentials credentials) {
         String username = credentials.getUsername();
         String password = credentials.getPassword();
 
-        if (username.equals(ADMIN_USERNAME) && password.equals(ADMIN_PASSWORD)) {
-            return JWTHandler.createToken(username, Authorities.ADMIN.toString());
+        String adminUsername = environment.getEnv(ADMIN_USERNAME_VARIABLE_NAME);
+        String adminPassword = environment.getEnv(ADMIN_PASSWORD_VARIABLE_NAME);
+
+        if (username.equals(adminUsername) && password.equals(adminPassword)) {
+            return tokenHandler.createToken(username, Authorities.ADMIN.toString());
         } else {
             throw new AccessDeniedException("Username or Password was incorrect.");
         }

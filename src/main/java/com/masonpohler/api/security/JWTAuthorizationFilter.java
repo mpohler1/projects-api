@@ -1,6 +1,7 @@
 package com.masonpohler.api.security;
 
 import io.jsonwebtoken.*;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -17,12 +18,15 @@ public class JWTAuthorizationFilter extends OncePerRequestFilter {
 
     private static final String AUTHORIZATION_HEADER = "Authorization";
 
+    @Autowired
+    private JWTHandler tokenHandler;
+
     @Override
     protected void doFilterInternal(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, FilterChain filterChain) throws ServletException, IOException {
         try {
             String token = httpServletRequest.getHeader(AUTHORIZATION_HEADER);
             if (token != null) {
-                Claims claims = JWTHandler.validateToken(token);
+                Claims claims = tokenHandler.validateToken(token);
                 if (claims.get("authorities") != null) {
                     setUpSpringAuthentication(claims);
                 } else {
