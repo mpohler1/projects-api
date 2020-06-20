@@ -9,6 +9,8 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.security.access.AccessDeniedException;
 import org.yaml.snakeyaml.error.MissingEnvironmentVariableException;
 
+import java.util.Date;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -65,7 +67,12 @@ class AuthenticationControllerTest {
     void login_returns_a_token_created_by_token_handler_when_given_good_credentials() {
         String expectedToken = "xxxxx.yyyyy.zzzzz";
 
-        when(mockedTokenService.createToken(any(String.class), any(String.class)))
+        when(mockedTokenService.createToken(
+                any(String.class),
+                any(String.class),
+                any(Date.class),
+                any(Date.class))
+        )
                 .thenReturn(expectedToken);
 
         Credentials goodCredentials = makeGoodCredentials();

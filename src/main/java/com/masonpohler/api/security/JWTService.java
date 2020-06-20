@@ -14,14 +14,13 @@ import java.util.List;
 
 @Service
 class JWTService implements TokenService {
-    private static final Long EXPIRATION_TIME_IN_MILLISECONDS = 7200000L;
     private static final String API_SECRET_ENVIRONMENT_VARIABLE_NAME = "API_SECRET";
     private static final String AUTHORITIES_CLAIM = "authorities";
 
     @Autowired
     private EnvironmentService environmentService;
 
-    public String createToken(String username, String authority) {
+    public String createToken(String username, String authority, Date issuedAt, Date expiration) {
         String apiSecret = environmentService.getEnv(API_SECRET_ENVIRONMENT_VARIABLE_NAME);
 
         List grantedAuthorities = AuthorityUtils.commaSeparatedStringToAuthorityList(authority);
@@ -30,15 +29,15 @@ class JWTService implements TokenService {
                 .setId("adminJWT")
                 .setSubject(username)
                 .claim(AUTHORITIES_CLAIM, grantedAuthorities)
-                .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME_IN_MILLISECONDS))
-                .signWith(SignatureAlgorithm.ES256, apiSecret)
+                .setIssuedAt(issuedAt)
+                .setExpiration(expiration)
+                .signWith(SignatureAlgorithm.HS256, apiSecret.getBytes())
                 .compact();
     }
 
     public AuthenticatedUser validateToken(String token) {
         String apiSecret = environmentService.getEnv(API_SECRET_ENVIRONMENT_VARIABLE_NAME);
-        Claims claims = Jwts.parser().setSigningKey(apiSecret).parseClaimsJws(token).getBody();
+        Claims claims = Jwts.parser().setSigningKey(apiSecret.getBytes()).parseClaimsJws(token).getBody();
 
         String username = claims.getSubject();
         List<SimpleGrantedAuthority> grantedAuthorities = (List<SimpleGrantedAuthority>) claims.get(AUTHORITIES_CLAIM);
