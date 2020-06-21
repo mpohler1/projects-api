@@ -1,6 +1,5 @@
 package com.masonpohler.api.security;
 
-import io.jsonwebtoken.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -35,7 +34,7 @@ public class TokenAuthorizationFilter extends OncePerRequestFilter {
             }
             filterChain.doFilter(httpServletRequest, httpServletResponse);
 
-        } catch (ExpiredJwtException | UnsupportedJwtException | MalformedJwtException e) {
+        } catch (TokenValidationException e) {
             httpServletResponse.setStatus(HttpServletResponse.SC_FORBIDDEN);
             httpServletResponse.sendError(HttpServletResponse.SC_FORBIDDEN, e.getMessage());
         }

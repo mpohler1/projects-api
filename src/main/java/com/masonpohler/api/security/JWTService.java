@@ -1,9 +1,7 @@
 package com.masonpohler.api.security;
 
 import com.masonpohler.api.environment.EnvironmentService;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -35,7 +33,25 @@ class JWTService implements TokenService {
                 .compact();
     }
 
-    public AuthenticatedUser validateToken(String token) {
+    public AuthenticatedUser validateToken(String token) throws TokenValidationException {
+        try {
+            return doValidation(token);
+
+        } catch (ExpiredJwtException e) {
+            throw new ExpiredTokenException();
+
+        } catch (UnsupportedJwtException e) {
+            throw new UnsupportedTokenException();
+
+        } catch (MalformedJwtException e) {
+            throw new MalformedTokenException();
+
+        } catch (SignatureException e) {
+            throw new TokenSignatureException();
+        }
+    }
+
+    private AuthenticatedUser doValidation(String token) throws ExpiredJwtException, UnsupportedJwtException, MalformedJwtException {
         String apiSecret = environmentService.getEnv(API_SECRET_ENVIRONMENT_VARIABLE_NAME);
         Claims claims = Jwts.parser().setSigningKey(apiSecret.getBytes()).parseClaimsJws(token).getBody();
 
