@@ -12,15 +12,16 @@ import org.yaml.snakeyaml.error.MissingEnvironmentVariableException;
 
 import java.util.Date;
 
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
 
 class JWTServiceTest {
     private static final String API_SECRET_ENVIRONMENT_VARIABLE_NAME = "API_SECRET";
     private static final String API_SECRET = "secret";
+    private static final String ID = "adminJWT";
     private static final String ADMIN_USERNAME = "root";
     private static final String ADMIN_AUTHORITY = Authorities.ADMIN.toString();
+    private static final String AUTHORITY_CLAIM = "authority";
     private static final long EXPIRATION_TIME_IN_MILLISECONDS = 1000000L;
     private static final SignatureAlgorithm CORRECT_SIGNATURE_ALGORITHM = SignatureAlgorithm.HS256;
     private static final SignatureAlgorithm INCORRECT_SIGNATURE_ALGORITHM = SignatureAlgorithm.HS512;
@@ -60,6 +61,17 @@ class JWTServiceTest {
                 new Date(System.currentTimeMillis()),
                 new Date(System.currentTimeMillis() + EXPIRATION_TIME_IN_MILLISECONDS)
         ));
+    }
+
+    @Test
+    void create_token_returns_expected_token() {
+        Date issuedAt = new Date(System.currentTimeMillis());
+        Date expiration = new Date(System.currentTimeMillis() + EXPIRATION_TIME_IN_MILLISECONDS);
+
+        String expectedToken = createValidToken(issuedAt, expiration);
+        String actualToken = jwtService.createToken(ADMIN_USERNAME, ADMIN_AUTHORITY, issuedAt, expiration);
+
+        assertEquals(expectedToken, actualToken);
     }
 
     @Test
@@ -116,5 +128,50 @@ class JWTServiceTest {
                 new Date(System.currentTimeMillis() + EXPIRATION_TIME_IN_MILLISECONDS)
         );
         assertDoesNotThrow(() -> jwtService.validateToken(token));
+    }
+
+    @Test
+    void validate_token_returns_expected_authenticated_user_when_given_valid_token() {
+        String validToken = createValidToken(
+                new Date(System.currentTimeMillis()),
+                new Date(System.currentTimeMillis() + EXPIRATION_TIME_IN_MILLISECONDS)
+        );
+
+        AuthenticatedUser expectedAuthenticatedUser = new AuthenticatedUser();
+        expectedAuthenticatedUser.setUsername(ADMIN_USERNAME);
+        expectedAuthenticatedUser.setAuthority(ADMIN_AUTHORITY);
+
+        AuthenticatedUser actualAuthenticatedUser = jwtService.validateToken(validToken);
+
+        assertEquals(expectedAuthenticatedUser, actualAuthenticatedUser);
+    }
+
+    @Test
+    void validate_token_returns_expected_authenticated_user_when_given_valid_token_created_by_create_token() {
+        String validToken = jwtService.createToken(
+                ADMIN_USERNAME,
+                ADMIN_AUTHORITY,
+                new Date(System.currentTimeMillis()),
+                new Date(System.currentTimeMillis() + EXPIRATION_TIME_IN_MILLISECONDS)
+        );
+
+        AuthenticatedUser expectedAuthenticatedUser = new AuthenticatedUser();
+        expectedAuthenticatedUser.setUsername(ADMIN_USERNAME);
+        expectedAuthenticatedUser.setAuthority(ADMIN_AUTHORITY);
+
+        AuthenticatedUser actualAuthenticatedUser = jwtService.validateToken(validToken);
+
+        assertEquals(expectedAuthenticatedUser, actualAuthenticatedUser);
+    }
+
+    private String createValidToken(Date issuedAt, Date expiration) {
+        return Jwts.builder()
+                .setId(ID)
+                .setSubject(ADMIN_USERNAME)
+                .claim(AUTHORITY_CLAIM, ADMIN_AUTHORITY)
+                .setIssuedAt(issuedAt)
+                .setExpiration(expiration)
+                .signWith(CORRECT_SIGNATURE_ALGORITHM, API_SECRET.getBytes())
+                .compact();
     }
 }

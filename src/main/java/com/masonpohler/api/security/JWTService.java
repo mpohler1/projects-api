@@ -3,8 +3,6 @@ package com.masonpohler.api.security;
 import com.masonpohler.api.environment.EnvironmentService;
 import io.jsonwebtoken.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.authority.AuthorityUtils;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
@@ -13,7 +11,7 @@ import java.util.List;
 @Service
 class JWTService implements TokenService {
     private static final String API_SECRET_ENVIRONMENT_VARIABLE_NAME = "API_SECRET";
-    private static final String AUTHORITIES_CLAIM = "authorities";
+    private static final String AUTHORITY_CLAIM = "authority";
 
     @Autowired
     private EnvironmentService environmentService;
@@ -21,12 +19,10 @@ class JWTService implements TokenService {
     public String createToken(String username, String authority, Date issuedAt, Date expiration) {
         String apiSecret = environmentService.getEnv(API_SECRET_ENVIRONMENT_VARIABLE_NAME);
 
-        List grantedAuthorities = AuthorityUtils.commaSeparatedStringToAuthorityList(authority);
-
         return Jwts.builder()
                 .setId("adminJWT")
                 .setSubject(username)
-                .claim(AUTHORITIES_CLAIM, grantedAuthorities)
+                .claim(AUTHORITY_CLAIM, authority)
                 .setIssuedAt(issuedAt)
                 .setExpiration(expiration)
                 .signWith(SignatureAlgorithm.HS256, apiSecret.getBytes())
@@ -56,11 +52,11 @@ class JWTService implements TokenService {
         Claims claims = Jwts.parser().setSigningKey(apiSecret.getBytes()).parseClaimsJws(token).getBody();
 
         String username = claims.getSubject();
-        List<SimpleGrantedAuthority> grantedAuthorities = (List<SimpleGrantedAuthority>) claims.get(AUTHORITIES_CLAIM);
+        String authority = claims.get(AUTHORITY_CLAIM, String.class);
 
         AuthenticatedUser authenticatedUser = new AuthenticatedUser();
         authenticatedUser.setUsername(username);
-        authenticatedUser.setGrantedAuthorities(grantedAuthorities);
+        authenticatedUser.setAuthority(authority);
         return authenticatedUser;
     }
 }
