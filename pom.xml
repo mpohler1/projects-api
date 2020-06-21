@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>com.masonpohler</groupId>
 	<artifactId>projects-api</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>1.0.0</version>
 	<name>projects-api</name>
 	<description>An API used to store data about your projects. Data includes the name, description, detailed description, where its hosted live, and what repositories it uses.</description>
 
