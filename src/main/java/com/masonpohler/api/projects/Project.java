@@ -24,6 +24,7 @@ class Project {
     @Column(columnDefinition = "MEDIUMTEXT")
     private String detailedDescription;
 
+    private boolean large;
     private String previewURL;
     private String liveURL;
 
