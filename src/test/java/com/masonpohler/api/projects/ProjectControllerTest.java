@@ -8,6 +8,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.stubbing.Answer;
 
+import java.sql.Date;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -211,6 +212,7 @@ class ProjectControllerTest {
     void delete_project_removes_project_from_repository() {
         List<Project> dummyProjectList = createDummyProjectList();
         mockFindAll(dummyProjectList);
+        mockFindById(dummyProjectList);
         mockDelete(dummyProjectList);
 
         Project dummyProject = dummyProjectList.get(0);
@@ -218,7 +220,7 @@ class ProjectControllerTest {
         List<Project> expectedProjectList = new LinkedList<>(dummyProjectList);
         expectedProjectList.remove(dummyProject);
 
-        controller.deleteProject(dummyProject);
+        controller.deleteProject(dummyProject.getId());
         List<Project> actualProjectList = mockedRepository.findAll();
 
         assertEquals(expectedProjectList, actualProjectList);
@@ -228,6 +230,7 @@ class ProjectControllerTest {
 
     private void mockFindAll(List<Project> projectList) {
         when(mockedRepository.findAll()).thenReturn(projectList);
+        when(mockedRepository.findAllByOrderByLastModifiedDesc()).thenReturn(projectList);
     }
 
     private void mockFindById(List<Project> projectList) {
@@ -264,6 +267,7 @@ class ProjectControllerTest {
         dummyProject.setDetailedDescription("An API for storing information on all your Projects.");
         dummyProject.setPreviewURL("https://example.com/projects-api/image.jpg");
         dummyProject.setLiveURL("https://example.com/projects-api");
+        dummyProject.setLastModified(Date.valueOf("2020-06-17"));
         return dummyProject;
     }
 
@@ -275,6 +279,7 @@ class ProjectControllerTest {
         meatbol.setDetailedDescription("An interpreter for the Meatbol language.");
         meatbol.setPreviewURL("https://example.com/meatbol/image.jpg");
         meatbol.setLiveURL("https://example.com/meatbol");
+        meatbol.setLastModified(Date.valueOf("2020-06-20"));
 
         Project pcWonder = new Project();
         pcWonder.setId(1);
@@ -283,6 +288,7 @@ class ProjectControllerTest {
         pcWonder.setDetailedDescription("An ecommerce website for computer hardware.");
         pcWonder.setPreviewURL("https://example.com/pc-wonder/image.jpg");
         pcWonder.setLiveURL("https://example.com/pc-wonder");
+        pcWonder.setLastModified(Date.valueOf("2020-06-19"));
 
         Project portfolio = new Project();
         portfolio.setId(2);
@@ -291,6 +297,7 @@ class ProjectControllerTest {
         portfolio.setDetailedDescription("This is my Portfolio.");
         portfolio.setPreviewURL("https://example.com/portfolio/image.jpg");
         portfolio.setLiveURL("https://example.com/portfolio");
+        portfolio.setLastModified(Date.valueOf("2020-06-18"));
 
         List<Project> dummyProjectsList = new LinkedList<>();
         dummyProjectsList.add(meatbol);

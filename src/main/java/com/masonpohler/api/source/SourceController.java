@@ -27,8 +27,10 @@ class SourceController {
         return repository.save(source);
     }
 
-    @DeleteMapping("sources/delete")
-    void deleteSource(@RequestBody Source source) {
+    @DeleteMapping("source/{id}/delete")
+    void deleteSource(@PathVariable long id) {
+        Source source = repository.findById(id)
+                .orElseThrow(() -> new SourceNotFoundException(id));
         repository.delete(source);
     }
 }

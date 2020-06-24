@@ -44,8 +44,10 @@ class ProjectController {
         return repository.save(project);
     }
 
-    @PostMapping("/projects/delete")
-    void deleteProject(@RequestBody Project project) {
+    @DeleteMapping("/project/{id}/delete")
+    void deleteProject(@PathVariable long id) {
+        Project project = repository.findById(id)
+                .orElseThrow(() -> new ProjectNotFoundException(id));
         repository.delete(project);
     }
 }

@@ -100,13 +100,14 @@ class SourceControllerTest {
     void delete_source_removes_source_from_repository() {
         List<Source> dummySourceList = createDummySourceList();
         mockFindAll(dummySourceList);
+        mockFindById(dummySourceList);
         mockDelete(dummySourceList);
 
         Source dummySource = dummySourceList.get(0);
         List<Source> expectedSourceList = new LinkedList<>(dummySourceList);
         expectedSourceList.remove(dummySource);
 
-        controller.deleteSource(dummySource);
+        controller.deleteSource(dummySource.getId());
         List<Source> actualSourceList = mockedRepository.findAll();
 
         assertEquals(expectedSourceList, actualSourceList);
