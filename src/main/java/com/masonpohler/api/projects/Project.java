@@ -3,8 +3,10 @@ package com.masonpohler.api.projects;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.masonpohler.api.source.Source;
 import lombok.Data;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -36,4 +38,7 @@ class Project {
             inverseJoinColumns = @JoinColumn(name = "source_id", referencedColumnName = "id")
     )
     private Set<Source> sources = new HashSet<>();
+
+    @UpdateTimestamp
+    private Date lastModified;
 }

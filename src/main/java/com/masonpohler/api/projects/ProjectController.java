@@ -14,7 +14,7 @@ class ProjectController {
 
     @GetMapping("/projects")
     List<Project> getAllProjects() {
-        return repository.findAll();
+        return repository.findAllByOrderByLastModifiedDesc();
     }
 
     @GetMapping("/project/{id}")
@@ -44,7 +44,7 @@ class ProjectController {
         return repository.save(project);
     }
 
-    @DeleteMapping("/projects/delete")
+    @PostMapping("/projects/delete")
     void deleteProject(@RequestBody Project project) {
         repository.delete(project);
     }
