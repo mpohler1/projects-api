@@ -28,6 +28,7 @@ class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .authorizeRequests()
                     .antMatchers("/login").permitAll()
                     .antMatchers(HttpMethod.GET, "/**").permitAll()
+                    .antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                     .anyRequest().hasAuthority(Authorities.ADMIN.toString());
     }
 }

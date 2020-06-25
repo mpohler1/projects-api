@@ -14,7 +14,7 @@ class ProjectController {
 
     @GetMapping("/projects")
     List<Project> getAllProjects() {
-        return repository.findAll();
+        return repository.findAllByOrderByLastModifiedDesc();
     }
 
     @GetMapping("/project/{id}")
@@ -44,8 +44,10 @@ class ProjectController {
         return repository.save(project);
     }
 
-    @DeleteMapping("/projects/delete")
-    void deleteProject(@RequestBody Project project) {
+    @DeleteMapping("/project/{id}/delete")
+    void deleteProject(@PathVariable long id) {
+        Project project = repository.findById(id)
+                .orElseThrow(() -> new ProjectNotFoundException(id));
         repository.delete(project);
     }
 }
